@@ -40,10 +40,10 @@ Quy trình tự động kiểm tra:
 
 Log và PCAP nằm trong `artifacts/` sau khi chạy. Mở `unsigned.pcap` bằng Wireshark, lọc `dns.qry.name == "bank.lab.test"`. Chạy `docker compose logs resolver` để xem log validation. Script luôn cố khôi phục authority nếu kiểm tra thất bại.
 
-Truy vấn thủ công (nếu máy có `dig`):
+Truy vấn thủ công bằng `dig` có sẵn trong container:
 
 ```sh
-dig @127.0.0.1 -p 1053 bank.lab.test A +dnssec
+docker compose exec resolver dig '@127.0.0.1' bank.lab.test A +dnssec
 docker compose exec resolver rndc flush
 docker compose logs --tail 100 resolver
 docker compose down
@@ -53,7 +53,7 @@ docker compose down
 
 Docker dùng Ubuntu 24.04 cho cả hai vai trò, không cần `systemctl`. Python/dnspython trả phản hồi thiếu chữ ký từ chính endpoint authoritative thay cho Scapy sniff/spoof. Transaction ID, source port và EDNS cookie được lấy từ query hiện tại; mục tiêu kiểm chứng là DNSSEC validation, không phải kỹ thuật thắng cuộc đua gói tin. Unsigned responder chỉ nhận truy vấn từ resolver của lab; dữ liệu thử dùng các IP tài liệu.
 
-Mạng Compose có `internal: true`; chỉ resolver được publish trên loopback `127.0.0.1:1053`. Không có recursive resolver mở ra Internet. KSK/ZSK sinh mới khi authority khởi động và không đưa vào Git. Volume `trust` chỉ chứa public trust anchor, resolver mount read-only. Sau khi recreate authority, recreate resolver để nạp khóa mới (`docker compose up -d --force-recreate --wait`). Chữ ký hiệu lực 30 ngày; recreate cả hai service để ký lại. Đây là lab island of security, chưa minh họa chuỗi DS từ root hay key rollover.
+Mạng Compose có `internal: true` và không publish cổng ra host. Truy vấn và kiểm thử chạy trong container; Docker Desktop không cần mở cổng 53 trên Windows. Không có recursive resolver mở ra Internet. KSK/ZSK sinh mới khi authority khởi động và không đưa vào Git. Volume `trust` chỉ chứa public trust anchor, resolver mount read-only. Sau khi recreate authority, recreate resolver để nạp khóa mới (`docker compose up -d --force-recreate --wait`). Chữ ký hiệu lực 30 ngày; recreate cả hai service để ký lại. Đây là lab island of security, chưa minh họa chuỗi DS từ root hay key rollover.
 
 Nếu subnet trùng mạng hiện có, cần đổi subnet/IP trong Compose, `entrypoint.sh`, `unsigned.py`, `check.py` đồng bộ. Chạy một phiên kiểm thử tại một thời điểm.
 

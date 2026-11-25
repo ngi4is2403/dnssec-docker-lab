@@ -26,9 +26,6 @@ services:
     networks:
       lab:
         ipv4_address: 172.30.53.20
-    ports:
-      - "127.0.0.1:1053:53/udp"
-      - "127.0.0.1:1053:53/tcp"
     healthcheck:
       test: ["CMD-SHELL", "rndc status >/dev/null"]
       interval: 2s
