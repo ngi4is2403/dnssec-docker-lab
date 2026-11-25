@@ -1,0 +1,54 @@
+services:
+  authority:
+    build: .
+    image: dnssec-lab:local
+    command: ["authority"]
+    volumes:
+      - trust:/trust
+      - evidence:/evidence
+    networks:
+      lab:
+        ipv4_address: 172.30.53.10
+    healthcheck:
+      test: ["CMD-SHELL", "dig @127.0.0.1 lab.test DNSKEY +short | grep -q '^257 '"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  resolver:
+    image: dnssec-lab:local
+    build: .
+    command: ["resolver"]
+    depends_on:
+      authority:
+        condition: service_healthy
+    volumes:
+      - trust:/trust:ro
+    networks:
+      lab:
+        ipv4_address: 172.30.53.20
+    ports:
+      - "127.0.0.1:1053:53/udp"
+      - "127.0.0.1:1053:53/tcp"
+    healthcheck:
+      test: ["CMD-SHELL", "rndc status >/dev/null"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  test:
+    image: dnssec-lab:local
+    build: .
+    entrypoint: ["python3", "/lab/check.py"]
+    profiles: ["tools"]
+    network_mode: service:resolver
+    depends_on:
+      resolver:
+        condition: service_healthy
+networks:
+  lab:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.53.0/24
+volumes:
+  trust:
+  evidence:
