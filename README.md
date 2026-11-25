@@ -2,6 +2,8 @@
 
 Chuyển mô hình hai VM trong [báo cáo DNSSEC](https://docs.google.com/document/d/11fwnF2LnT1U6xgHZ9Y0sJHIIhrDJZw5DAg0DtRotBRw/edit) sang Docker Compose. BIND9 ký zone `lab.test` bằng ECDSAP256SHA256; resolver xác thực bằng public KSK được tạo tự động.
 
+Đã chạy kiểm thử đầy đủ ngày 25/11/2026 trên Docker Desktop Linux containers, BIND 9.18.39. [Kết quả kiểm chứng](VALIDATION.md).
+
 | Thành phần | Địa chỉ nội bộ | Vai trò |
 |---|---|---|
 | authority | 172.30.53.10 | BIND9 authoritative; chuyển sang unsigned upstream khi test |

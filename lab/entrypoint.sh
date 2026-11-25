@@ -30,6 +30,8 @@ CONF
 elif [ "$1" = resolver ]; then
   test -s /trust/anchor.conf
   rndc-confgen -a -c /etc/bind/rndc.key
+  chown root:root /etc/bind/rndc.key
+  chmod 600 /etc/bind/rndc.key
   cat >/etc/bind/named.conf <<'CONF'
 include "/etc/bind/rndc.key";
 options {
